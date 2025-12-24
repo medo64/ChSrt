@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ChSrt/ChSrt.csproj" />
+  <Project Path="../tests/ChSrt.Tests/ChSrt.Tests.csproj" />
+</Solution>
