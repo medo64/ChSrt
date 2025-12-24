@@ -36,6 +36,7 @@ public sealed record SrtFile {
     /// </summary>
     public void FixAll() {
         FixTimeOrder();
+        FixTimeOverlaps();
         FixIndices();
     }
 
@@ -60,6 +61,25 @@ public sealed record SrtFile {
             if (cmp == 0) { cmp = a.Index.CompareTo(b.Index); }
             return cmp;
         });
+    }
+
+    /// <summary>
+    /// Fixes overlapping times.
+    /// </summary>
+    public void FixTimeOverlaps() {
+        var newEntries = new List<SrtEntry>();
+        for (var i = 0; i < BackingEntries.Count; i++) {
+            var entry = BackingEntries[i];
+            var currEnd = BackingEntries[i].EndTime;
+            var nextStart = i + 1 < BackingEntries.Count ? BackingEntries[i + 1].StartTime : TimeSpan.MaxValue;
+            if (currEnd > nextStart) {
+                newEntries.Add(entry with { EndTime = nextStart });
+            } else {
+                newEntries.Add(entry);
+
+            }
+        }
+        BackingEntries = newEntries;
     }
 
     /// <summary>
