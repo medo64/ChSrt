@@ -54,6 +54,7 @@ internal static class App {
             srt = SrtFile.Load(fs);
         }
 
+        srt.CleanAll();
         srt.FixAll();
         srt.AdjustTime(TimeSpan.FromMilliseconds((long)(timeAdjustment * 1000)));
 

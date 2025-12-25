@@ -44,6 +44,9 @@ public sealed record SrtEntry {
     /// <summary>
     /// Gets the text lines.
     /// </summary>
-    public IReadOnlyList<string> Lines => BackingLines.AsReadOnly();
+    public IReadOnlyList<string> Lines {
+        get { return BackingLines.AsReadOnly(); }
+        init { BackingLines = new List<string>(value); }
+    }
 
 }

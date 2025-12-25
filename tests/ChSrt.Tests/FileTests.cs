@@ -18,6 +18,7 @@ public sealed class File_Tests {
         var streamOut = GetStream(fileOut);
 
         var srtIn = SrtFile.Load(streamIn);
+        srtIn.CleanAll();
         srtIn.FixAll();
         var srtActual = new MemoryStream();
         srtIn.Save(srtActual);

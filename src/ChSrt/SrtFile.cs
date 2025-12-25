@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using Ude;
 
 /// <summary>
@@ -29,6 +30,36 @@ public sealed record SrtFile {
     /// Gets the entries in the SubRip file.
     /// </summary>
     public IReadOnlyList<SrtEntry> Entries => BackingEntries.AsReadOnly();
+
+
+    /// <summary>
+    /// Cleans all tags except for &lt;b&gt; and &lt;i&gt;.
+    /// </summary>
+    public void CleanAll() {
+        CleanAssTags();
+    }
+
+    /// <summary>
+    /// Cleans ASS tags from all entries.
+    /// </summary>
+    public void CleanAssTags() {
+        var newEntries = new List<SrtEntry>();
+        var newLines = new List<string>();
+        foreach (var entry in BackingEntries) {
+            newLines.Clear();
+            foreach (var line in entry.Lines) {
+                var newLine = line;
+                newLine = BoldOnAssRegex.Replace(newLine, "<b>");
+                newLine = BoldOffAssRegex.Replace(newLine, "</b>");
+                newLine = ItalicOnAssRegex.Replace(newLine, "<i>");
+                newLine = ItalicOffAssRegex.Replace(newLine, "</i>");
+                newLine = AllAssRegex.Replace(newLine, "");
+                newLines.Add(newLine);
+            }
+            newEntries.Add(entry with { Lines = newLines });
+        }
+        BackingEntries = newEntries;
+    }
 
 
     /// <summary>
@@ -318,5 +349,15 @@ public sealed record SrtFile {
     private static readonly Encoding Utf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
     #endregion File
+
+    #region Helpers
+
+    private static Regex AllAssRegex = new Regex(@"\{\\\S+\}", RegexOptions.Singleline | RegexOptions.Compiled);
+    private static Regex BoldOnAssRegex = new Regex(@"\{\\b1\}", RegexOptions.Singleline | RegexOptions.Compiled);
+    private static Regex BoldOffAssRegex = new Regex(@"\{\\b0\}", RegexOptions.Singleline | RegexOptions.Compiled);
+    private static Regex ItalicOnAssRegex = new Regex(@"\{\\i1\}", RegexOptions.Singleline | RegexOptions.Compiled);
+    private static Regex ItalicOffAssRegex = new Regex(@"\{\\i0\}", RegexOptions.Singleline | RegexOptions.Compiled);
+
+    #endregion Helpers
 
 }
