@@ -12,14 +12,30 @@ using ChSrt;
 public sealed class File_Tests {
 
     [DataTestMethod]
-    [DynamicData(nameof(FileAssets))]
+    [DynamicData(nameof(BasicAssets))]
     public void File_Basic(string fileIn, string fileOut) {
+        TestFile(fileIn, fileOut, srt => { });
+    }
+
+    [DataTestMethod]
+    [DynamicData(nameof(CleanupAssets))]
+    public void File_Clean(string fileIn, string fileOut) {
+        TestFile(fileIn, fileOut, srt => { srt.CleanAll();});
+    }
+
+    [DataTestMethod]
+    [DynamicData(nameof(FixupAssets))]
+    public void File_Fixup(string fileIn, string fileOut) {
+        TestFile(fileIn, fileOut, srt => { srt.FixAll(); });
+    }
+
+    private void TestFile(string fileIn, string fileOut, Action<SrtFile> action) {
         var streamIn = GetStream(fileIn)!;
         var streamOut = GetStream(fileOut);
 
         var srtIn = SrtFile.Load(streamIn);
-        srtIn.CleanAll();
-        srtIn.FixAll();
+        action(srtIn);
+
         var srtActual = new MemoryStream();
         srtIn.Save(srtActual);
         srtActual.Position = 0;
@@ -41,25 +57,36 @@ public sealed class File_Tests {
     }
 
 
-    private static IEnumerable<(string, string)> FileAssets {
-        get {
-            var foundAny = false;
+    private static IEnumerable<(string, string)> BasicAssets {
+        get { return GetFileAssets("Basic"); }
+    }
 
-            var resNames = Assembly.GetExecutingAssembly().GetManifestResourceNames()!;
-            foreach (var resName in resNames) {
-                if (!resName.EndsWith(".srt", StringComparison.Ordinal)) { continue; }
+    private static IEnumerable<(string, string)> CleanupAssets{
+        get { return GetFileAssets("Cleanup"); }
+    }
 
-                var parts = resName.Split('.');
-                if (parts.Length != 5) { continue; }
-                if (!parts[2].Equals("In", StringComparison.Ordinal)) { continue; }
+    private static IEnumerable<(string, string)> FixupAssets {
+        get { return GetFileAssets("Fixup"); }
+    }
 
-                foundAny = true;
-                var outFile = string.Join('.', parts[0], parts[1], "Out", parts[3], parts[4]);
-                yield return (resName, outFile);
-            }
+    private static IEnumerable<(string, string)> GetFileAssets(string directory) {
+        var foundAny = false;
 
-            if (!foundAny) { throw new InvalidOperationException($"No documents found"); }
+        var resNames = Assembly.GetExecutingAssembly().GetManifestResourceNames()!;
+        foreach (var resName in resNames) {
+            if (!resName.EndsWith(".srt", StringComparison.Ordinal)) { continue; }
+
+            var parts = resName.Split('.');
+            if (parts.Length != 6) { continue; }
+            if (!parts[2].Equals(directory, StringComparison.Ordinal)) { continue; }
+            if (!parts[3].Equals("In", StringComparison.Ordinal)) { continue; }
+
+            foundAny = true;
+            var outFile = string.Join('.', parts[0], parts[1], parts[2], "Out", parts[4], parts[5]);
+            yield return (resName, outFile);
         }
+
+        if (!foundAny) { throw new InvalidOperationException($"No documents found"); }
     }
 
     private static MemoryStream GetStream(string streamName) {
