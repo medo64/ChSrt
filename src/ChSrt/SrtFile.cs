@@ -37,6 +37,7 @@ public sealed record SrtFile {
     /// </summary>
     public void CleanAll() {
         CleanAssTags();
+        CleanHtmlTags();
     }
 
     /// <summary>
@@ -54,6 +55,37 @@ public sealed record SrtFile {
                 newLine = ItalicOnAssRegex.Replace(newLine, "<i>");
                 newLine = ItalicOffAssRegex.Replace(newLine, "</i>");
                 newLine = AllAssRegex.Replace(newLine, "");
+                newLines.Add(newLine);
+            }
+            newEntries.Add(entry with { Lines = newLines });
+        }
+        BackingEntries = newEntries;
+    }
+
+    /// <summary>
+    /// Cleans HTML tags from all entries.
+    /// Bold and italic are not cleaned.
+    /// </summary>
+    public void CleanHtmlTags() {
+        CleanHtmlTags(cleanBoldAndItalic: false);
+    }
+
+    /// <summary>
+    /// Cleans HTML tags from all entries.
+    /// </summary>
+    /// <param name="cleanBoldAndItalic">If true, bold and italic tags are also cleaned.</param>
+    public void CleanHtmlTags(bool cleanBoldAndItalic) {
+        var newEntries = new List<SrtEntry>();
+        var newLines = new List<string>();
+        foreach (var entry in BackingEntries) {
+            newLines.Clear();
+            foreach (var line in entry.Lines) {
+                var newLine = line;
+                if (cleanBoldAndItalic) {
+                    newLine = AllHtmlRegex.Replace(newLine, "");
+                } else {
+                    newLine = ExtraHtmlRegex.Replace(newLine, "");
+                }
                 newLines.Add(newLine);
             }
             newEntries.Add(entry with { Lines = newLines });
@@ -361,6 +393,8 @@ public sealed record SrtFile {
     private static Regex BoldOffAssRegex = new Regex(@"\{\\b0\}", RegexOptions.Singleline | RegexOptions.Compiled);
     private static Regex ItalicOnAssRegex = new Regex(@"\{\\i1\}", RegexOptions.Singleline | RegexOptions.Compiled);
     private static Regex ItalicOffAssRegex = new Regex(@"\{\\i0\}", RegexOptions.Singleline | RegexOptions.Compiled);
+    private static Regex ExtraHtmlRegex = new Regex(@"<(?!/?(?:b|i)\b)[^>]+>", RegexOptions.Singleline | RegexOptions.Compiled);
+    private static Regex AllHtmlRegex = new Regex(@"<[^>]+>", RegexOptions.Singleline | RegexOptions.Compiled);
 
     #endregion Helpers
 
