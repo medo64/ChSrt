@@ -278,7 +278,7 @@ public sealed record SrtFile {
         var lines = new List<string>();
 
         var chars = encoding.GetChars(bytes);
-        var lastChar = '\0';
+        var lastChar = default(char?);
         foreach (var ch in chars) {
             var isNewLine = false;
             var isText = false;
@@ -310,6 +310,10 @@ public sealed record SrtFile {
             lastChar = ch;
         }
 
+        if (lineChars.Count > 0) {
+            var line = new string([.. lineChars]);
+            lines.Add(line);
+        }
         if (lines.Count >= 2) {
             ParseLines(entries, lines);
         }
