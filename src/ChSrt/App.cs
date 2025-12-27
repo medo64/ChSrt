@@ -7,18 +7,6 @@ using System.IO;
 
 internal static class App {
     internal static int Main(string[] args) {
-        var inPlaceOption = new Option<bool>("--in-place", "-i") {
-            Description = "Edit file in place",
-            Arity = ArgumentArity.Zero,
-            DefaultValueFactory = _ => false,
-        };
-
-        var timeOption = new Option<decimal>("--adjust-time", "-t") {
-            Description = "Time adjustment in seconds (can be negative)",
-            Arity = ArgumentArity.ExactlyOne,
-            DefaultValueFactory = _ => 0,
-        };
-
         var fileArgument = new Argument<FileInfo>("file") {
             Description = "File to use",
             Arity = ArgumentArity.ExactlyOne
@@ -30,17 +18,45 @@ internal static class App {
             }
         });
 
+        var cleanAllOption = new Option<bool>("--clean-all", "-c") {
+            Description = "Executes all available cleanup operations",
+            Arity = ArgumentArity.Zero,
+            DefaultValueFactory = _ => false,
+        };
+
+        var fixAllOption = new Option<bool>("--fix-all", "-f") {
+            Description = "Executes all available fixup operations",
+            Arity = ArgumentArity.Zero,
+            DefaultValueFactory = _ => false,
+        };
+
+        var inPlaceOption = new Option<bool>("--in-place", "-i") {
+            Description = "Edit file in place",
+            Arity = ArgumentArity.Zero,
+            DefaultValueFactory = _ => false,
+        };
+
+        var timeAdjustOption = new Option<decimal>("--time-adjust", "-t") {
+            Description = "Time adjustment in seconds (can be negative)",
+            Arity = ArgumentArity.ExactlyOne,
+            DefaultValueFactory = _ => 0,
+        };
+
         // Default command
         var rootCommand = new RootCommand("SRT manipulation tool") {
             fileArgument,
+            cleanAllOption,
+            fixAllOption,
             inPlaceOption,
-            timeOption,
+            timeAdjustOption,
         };
         rootCommand.SetAction(result => {
             Exec(
                  result.GetValue(fileArgument)!,  // handled by parser
+                 result.GetValue(cleanAllOption)!,
+                 result.GetValue(fixAllOption)!,
                  result.GetValue(inPlaceOption)!,
-                 result.GetValue(timeOption)!
+                 result.GetValue(timeAdjustOption)!
             );
 
         });
@@ -48,20 +64,19 @@ internal static class App {
         return rootCommand.Parse(args).Invoke();
     }
 
-    private static void Exec(FileInfo file, bool inPlace, decimal timeAdjustment) {
+    private static void Exec(FileInfo file, bool cleanAll, bool fixAll, bool inPlace, decimal timeAdjust) {
         SrtFile srt;
         using (var fs = file.OpenRead()) {
             srt = SrtFile.Load(fs);
         }
 
-        srt.CleanAll();
-        srt.FixAll();
-        srt.AdjustTime(TimeSpan.FromMilliseconds((long)(timeAdjustment * 1000)));
+        if (cleanAll) { srt.CleanAll(); }
+        if (fixAll) { srt.FixAll(); }
+        if (timeAdjust != 0) { srt.AdjustTime(TimeSpan.FromMilliseconds((long)(timeAdjust * 1000))); }
 
         if (inPlace) {
-            using (var fs = file.OpenWrite()) {
-                srt.Save(fs);
-            }
+            using var fs = file.OpenWrite();
+            srt.Save(fs);
         } else {
             srt.Save(Console.OpenStandardOutput(), Environment.NewLine);
         }
