@@ -1,20 +1,21 @@
 ﻿namespace ChSrt;
 
 using System;
-using System.Collections.Generic;
 using System.CommandLine;
 using System.IO;
 
 internal static class App {
     internal static int Main(string[] args) {
-        var fileArgument = new Argument<FileInfo>("file") {
-            Description = "File to use",
-            Arity = ArgumentArity.ExactlyOne
+        var fileArgument = new Argument<FileInfo[]>("file") {
+            Description = "File(s) to use",
+            Arity = ArgumentArity.OneOrMore
         };
         fileArgument.Validators.Add(result => {
-            var value = result.GetValueOrDefault<FileInfo>();
-            if (!value.Exists) {
-                result.AddError($"File \"{value.FullName}\" doesn't exist");
+            var files = result.GetValueOrDefault<FileInfo[]>();
+            foreach (var file in files!) {
+                if (!file.Exists) {
+                    result.AddError($"File \"{file.FullName}\" doesn't exist");
+                }
             }
         });
 
@@ -113,39 +114,41 @@ internal static class App {
         return rootCommand.Parse(args).Invoke();
     }
 
-    private static void Exec(FileInfo file,
+    private static void Exec(FileInfo[] files,
                              bool cleanAll, bool cleanAss, bool cleanHtml, bool cleanHtmlAll,
                              bool fixAll, bool fixIndices, bool fixOrder, bool fixOverlap,
                              bool inPlace, decimal timeAdjust) {
-        SrtFile srt;
-        using (var fs = file.OpenRead()) {
-            srt = SrtFile.Load(fs);
-        }
+        foreach (var file in files) {
+            SrtFile srt;
+            using (var fs = file.OpenRead()) {
+                srt = SrtFile.Load(fs);
+            }
 
-        if (cleanAll) {
-            srt.CleanAll();
-            if (cleanHtmlAll) { srt.CleanHtmlTags(cleanBoldAndItalic: true); }
-        } else {
-            if (cleanAss) { srt.CleanAssTags(); }
-            if (cleanHtml) { srt.CleanHtmlTags(); }
-            if (cleanHtmlAll) { srt.CleanHtmlTags(cleanBoldAndItalic: true); }
-        }
+            if (cleanAll) {
+                srt.CleanAll();
+                if (cleanHtmlAll) { srt.CleanHtmlTags(cleanBoldAndItalic: true); }
+            } else {
+                if (cleanAss) { srt.CleanAssTags(); }
+                if (cleanHtml) { srt.CleanHtmlTags(); }
+                if (cleanHtmlAll) { srt.CleanHtmlTags(cleanBoldAndItalic: true); }
+            }
 
-        if (fixAll) {
-            srt.FixAll();
-        } else {
-            if (fixOrder) { srt.FixTimeOrder(); }
-            if (fixOverlap) { srt.FixTimeOverlaps(); }
-            if (fixIndices) { srt.FixIndices(); }
-        }
+            if (fixAll) {
+                srt.FixAll();
+            } else {
+                if (fixOrder) { srt.FixTimeOrder(); }
+                if (fixOverlap) { srt.FixTimeOverlaps(); }
+                if (fixIndices) { srt.FixIndices(); }
+            }
 
-        if (timeAdjust != 0) { srt.AdjustTime(TimeSpan.FromMilliseconds((long)(timeAdjust * 1000))); }
+            if (timeAdjust != 0) { srt.AdjustTime(TimeSpan.FromMilliseconds((long)(timeAdjust * 1000))); }
 
-        if (inPlace) {
-            using var fs = file.OpenWrite();
-            srt.Save(fs);
-        } else {
-            srt.Save(Console.OpenStandardOutput(), Environment.NewLine);
+            if (inPlace) {
+                using var fs = file.OpenWrite();
+                srt.Save(fs);
+            } else {
+                srt.Save(Console.OpenStandardOutput(), Environment.NewLine);
+            }
         }
     }
 
