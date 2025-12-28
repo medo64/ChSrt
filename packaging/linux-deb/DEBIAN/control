@@ -1,0 +1,10 @@
+Package:        chsrt
+Version:        <DEB_VERSION>
+Architecture:   <DEB_ARCHITECTURE>
+Maintainer:     Josip Medved <jmedved@jmedved.com>
+Homepage:       https://medo64.com/chsrt/
+Description:    Subtitle manipulation
+ Tool to manipulate SRT files.
+Section:        utils
+Priority:       optional
+Depends:        debconf, gnupg2, libc6
