@@ -9,5 +9,4 @@
 *.md      text
 *.sh      text
 *.sln     text
-*.srt     text eol=crlf
 *.raw     binary

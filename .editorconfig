@@ -282,6 +282,3 @@ dotnet_diagnostic.CA1008.severity                                             = 
 dotnet_diagnostic.CA1031.severity                                             = none
 ## CA1710: Identifiers should have correct suffix
 dotnet_diagnostic.CA1710.severity                                             = none
-
-[*.srt]
-end_of_line              =

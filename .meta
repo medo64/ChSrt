@@ -1,3 +1,5 @@
-PROJECT_NAME:           ChSrt
-PROJECT_ENTRYPOINT:     src/ChSrt/ChSrt.csproj
-PROJECT_RUNTIMES:       current linux-x64 linux-musl-x64 win-x64
+PROJECT_NAME:             ChSrt
+PROJECT_ENTRYPOINT:       src/ChSrt/ChSrt.csproj
+PROJECT_RUNTIMES:         current linux-x64 linux-musl-x64 win-x64
+PROJECT_SINGLEFILE:       true
+PACKAGE_LINUX_DEB:        chsrt
