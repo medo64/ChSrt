@@ -141,13 +141,14 @@ internal static class App {
                              bool inPlace, decimal timeAdjust,
                              int verbosityLevel) {
         foreach (var file in files) {
-            if (verbosityLevel >= 1) { Console.Error.WriteLine($"{file.FullName}"); }
+            Output.VerbosityLevel = verbosityLevel;
+            Output.Verbose1($"{file.FullName}");
 
             if (backup) {
                 var backupFileName = file.FullName + ".bak";
-                if (verbosityLevel >= 2) { Console.Error.WriteLine($"Backing up \"{file.FullName}\" to \"{backupFileName}\""); }
+                Output.Verbose2($"Backing up to \"{backupFileName}\"");
                 if (File.Exists(backupFileName)) {
-                    Console.Error.WriteLine("Backup file \"{0}\" already exists, skipping backup.", backupFileName);
+                    Output.Warning($"Backup file \"{backupFileName}\" already exists, skipping backup.");
                 } else {
                     File.Copy(file.FullName, backupFileName, overwrite: true);
                 }
@@ -155,58 +156,58 @@ internal static class App {
 
             SrtFile srt;
             using (var fs = file.OpenRead()) {
-                if (verbosityLevel >= 2) { Console.Error.WriteLine($"Loading file"); }
+                Output.Verbose2($"Loading file");
                 srt = SrtFile.Load(fs);
             }
 
             if (cleanAll) {
-                if (verbosityLevel >= 2) { Console.Error.WriteLine($"Cleaning all tags"); }
+                Output.Verbose2($"Cleaning all tags");
                 srt.CleanAll();
                 if (cleanHtmlAll) {
-                    if (verbosityLevel >= 2) { Console.Error.WriteLine($"Cleaning bold and italic tags"); }
+                    Output.Verbose2($"Cleaning bold and italic tags");
                     srt.CleanHtmlTags(cleanBoldAndItalic: true);
                 }
             } else {
                 if (cleanAss) {
-                    if (verbosityLevel >= 2) { Console.Error.WriteLine($"Cleaning ASS tags"); }
+                    Output.Verbose2($"Cleaning ASS tags");
                     srt.CleanAssTags();
                 }
                 if (cleanHtml) {
-                    if (verbosityLevel >= 2) { Console.Error.WriteLine($"Cleaning HTML tags"); }
+                    Output.Verbose2($"Cleaning HTML tags");
                     srt.CleanHtmlTags();
                 }
                 if (cleanHtmlAll) {
-                    if (verbosityLevel >= 2) { Console.Error.WriteLine($"Cleaning bold and italic tags"); }
+                    Output.Verbose2($"Cleaning bold and italic tags");
                     srt.CleanHtmlTags(cleanBoldAndItalic: true);
                 }
             }
 
             if (fixAll) {
-                if (verbosityLevel >= 2) { Console.Error.WriteLine($"Fixing all issues"); }
+                Output.Verbose2($"Fixing all issues");
                 srt.FixAll();
             } else {
                 if (fixOrder) {
-                    if (verbosityLevel >= 2) { Console.Error.WriteLine($"Fixing time order"); }
+                    Output.Verbose2($"Fixing time order");
                     srt.FixTimeOrder();
                 }
                 if (fixOverlap) {
-                    if (verbosityLevel >= 2) { Console.Error.WriteLine($"Fixing time overlaps"); }
+                    Output.Verbose2($"Fixing time overlaps");
                     srt.FixTimeOverlaps();
                 }
                 if (fixIndices) {
-                    if (verbosityLevel >= 2) { Console.Error.WriteLine($"Fixing indices"); }
+                    Output.Verbose2($"Fixing indices");
                     srt.FixIndices();
                 }
             }
 
             if (timeAdjust != 0) {
                 var ts = TimeSpan.FromMilliseconds((long)(timeAdjust * 1000));
-                if (verbosityLevel >= 2) { Console.Error.WriteLine($"Adjusting time by {ts}"); }
+                Output.Verbose2($"Adjusting time by {ts}");
                 srt.AdjustTime(ts);
             }
 
             if (inPlace) {
-                if (verbosityLevel >= 2) { Console.Error.WriteLine($"Saving file"); }
+                Output.Verbose2($"Saving file");
                 using var fs = file.OpenWrite();
                 srt.Save(fs);
             } else {
