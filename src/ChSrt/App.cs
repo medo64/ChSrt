@@ -86,6 +86,16 @@ internal static class App {
             DefaultValueFactory = _ => 0,
         };
 
+        var verbosityLevel = 0;
+        var verboseOption = new Option<bool>("--verbose", "-v") {
+            Description = "Enable verbose output",
+            Arity = ArgumentArity.Zero,
+            DefaultValueFactory = _ => false,
+        };
+        verboseOption.Validators.Add(result => {
+            verbosityLevel = result.IdentifierTokenCount;
+        });
+
         // Default command
         var rootCommand = new RootCommand("SRT manipulation tool") {
             fileArgument,
@@ -100,6 +110,7 @@ internal static class App {
             fixOverlap,
             inPlaceOption,
             timeAdjustOption,
+            verboseOption,
         };
         rootCommand.SetAction(result => {
             Exec(
@@ -114,7 +125,8 @@ internal static class App {
                  result.GetValue(fixOrder)!,
                  result.GetValue(fixOverlap)!,
                  result.GetValue(inPlaceOption)!,
-                 result.GetValue(timeAdjustOption)!
+                 result.GetValue(timeAdjustOption)!,
+                 verbosityLevel
             );
 
         });
@@ -126,10 +138,14 @@ internal static class App {
                              bool backup,
                              bool cleanAll, bool cleanAss, bool cleanHtml, bool cleanHtmlAll,
                              bool fixAll, bool fixIndices, bool fixOrder, bool fixOverlap,
-                             bool inPlace, decimal timeAdjust) {
+                             bool inPlace, decimal timeAdjust,
+                             int verbosityLevel) {
         foreach (var file in files) {
+            if (verbosityLevel >= 1) { Console.Error.WriteLine($"{file.FullName}"); }
+
             if (backup) {
                 var backupFileName = file.FullName + ".bak";
+                if (verbosityLevel >= 2) { Console.Error.WriteLine($"Backing up \"{file.FullName}\" to \"{backupFileName}\""); }
                 if (File.Exists(backupFileName)) {
                     Console.Error.WriteLine("Backup file \"{0}\" already exists, skipping backup.", backupFileName);
                 } else {
@@ -139,29 +155,58 @@ internal static class App {
 
             SrtFile srt;
             using (var fs = file.OpenRead()) {
+                if (verbosityLevel >= 2) { Console.Error.WriteLine($"Loading file"); }
                 srt = SrtFile.Load(fs);
             }
 
             if (cleanAll) {
+                if (verbosityLevel >= 2) { Console.Error.WriteLine($"Cleaning all tags"); }
                 srt.CleanAll();
-                if (cleanHtmlAll) { srt.CleanHtmlTags(cleanBoldAndItalic: true); }
+                if (cleanHtmlAll) {
+                    if (verbosityLevel >= 2) { Console.Error.WriteLine($"Cleaning bold and italic tags"); }
+                    srt.CleanHtmlTags(cleanBoldAndItalic: true);
+                }
             } else {
-                if (cleanAss) { srt.CleanAssTags(); }
-                if (cleanHtml) { srt.CleanHtmlTags(); }
-                if (cleanHtmlAll) { srt.CleanHtmlTags(cleanBoldAndItalic: true); }
+                if (cleanAss) {
+                    if (verbosityLevel >= 2) { Console.Error.WriteLine($"Cleaning ASS tags"); }
+                    srt.CleanAssTags();
+                }
+                if (cleanHtml) {
+                    if (verbosityLevel >= 2) { Console.Error.WriteLine($"Cleaning HTML tags"); }
+                    srt.CleanHtmlTags();
+                }
+                if (cleanHtmlAll) {
+                    if (verbosityLevel >= 2) { Console.Error.WriteLine($"Cleaning bold and italic tags"); }
+                    srt.CleanHtmlTags(cleanBoldAndItalic: true);
+                }
             }
 
             if (fixAll) {
+                if (verbosityLevel >= 2) { Console.Error.WriteLine($"Fixing all issues"); }
                 srt.FixAll();
             } else {
-                if (fixOrder) { srt.FixTimeOrder(); }
-                if (fixOverlap) { srt.FixTimeOverlaps(); }
-                if (fixIndices) { srt.FixIndices(); }
+                if (fixOrder) {
+                    if (verbosityLevel >= 2) { Console.Error.WriteLine($"Fixing time order"); }
+                    srt.FixTimeOrder();
+                }
+                if (fixOverlap) {
+                    if (verbosityLevel >= 2) { Console.Error.WriteLine($"Fixing time overlaps"); }
+                    srt.FixTimeOverlaps();
+                }
+                if (fixIndices) {
+                    if (verbosityLevel >= 2) { Console.Error.WriteLine($"Fixing indices"); }
+                    srt.FixIndices();
+                }
             }
 
-            if (timeAdjust != 0) { srt.AdjustTime(TimeSpan.FromMilliseconds((long)(timeAdjust * 1000))); }
+            if (timeAdjust != 0) {
+                var ts = TimeSpan.FromMilliseconds((long)(timeAdjust * 1000));
+                if (verbosityLevel >= 2) { Console.Error.WriteLine($"Adjusting time by {ts}"); }
+                srt.AdjustTime(ts);
+            }
 
             if (inPlace) {
+                if (verbosityLevel >= 2) { Console.Error.WriteLine($"Saving file"); }
                 using var fs = file.OpenWrite();
                 srt.Save(fs);
             } else {
