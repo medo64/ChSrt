@@ -2,7 +2,7 @@
 set -e
 
 # Make link
-ln -s /opt/chsrt/bin/chsrt /usr/bin/chsrt 2>/dev/null || true
+ln -s /opt/chsrt/chsrt /usr/bin/chsrt 2>/dev/null || true
 
 # Update MAN pages
 #mandb -q 2>/dev/null || true
