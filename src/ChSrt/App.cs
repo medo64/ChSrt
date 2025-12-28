@@ -19,6 +19,12 @@ internal static class App {
             }
         });
 
+        var backupOption = new Option<bool>("--backup", "-b") {
+            Description = "Creates a backup of the original file before editing",
+            Arity = ArgumentArity.Zero,
+            DefaultValueFactory = _ => false,
+        };
+
         var cleanAllOption = new Option<bool>("--clean-all", "-c") {
             Description = "Executes all available cleanup operations",
             Arity = ArgumentArity.Zero,
@@ -83,6 +89,7 @@ internal static class App {
         // Default command
         var rootCommand = new RootCommand("SRT manipulation tool") {
             fileArgument,
+            backupOption,
             cleanAllOption,
             cleanAssOption,
             cleanHtmlOption,
@@ -97,6 +104,7 @@ internal static class App {
         rootCommand.SetAction(result => {
             Exec(
                  result.GetValue(fileArgument)!,  // handled by parser
+                 result.GetValue(backupOption)!,
                  result.GetValue(cleanAllOption)!,
                  result.GetValue(cleanAssOption)!,
                  result.GetValue(cleanHtmlOption)!,
@@ -115,10 +123,20 @@ internal static class App {
     }
 
     private static void Exec(FileInfo[] files,
+                             bool backup,
                              bool cleanAll, bool cleanAss, bool cleanHtml, bool cleanHtmlAll,
                              bool fixAll, bool fixIndices, bool fixOrder, bool fixOverlap,
                              bool inPlace, decimal timeAdjust) {
         foreach (var file in files) {
+            if (backup) {
+                var backupFileName = file.FullName + ".bak";
+                if (File.Exists(backupFileName)) {
+                    Console.Error.WriteLine("Backup file \"{0}\" already exists, skipping backup.", backupFileName);
+                } else {
+                    File.Copy(file.FullName, backupFileName, overwrite: true);
+                }
+            }
+
             SrtFile srt;
             using (var fs = file.OpenRead()) {
                 srt = SrtFile.Load(fs);
