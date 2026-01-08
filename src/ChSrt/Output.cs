@@ -43,4 +43,22 @@ internal static class Output {
         }
     }
 
+    public static void Verbose3(string message) {
+        if (VerbosityLevel < 3) { return; }
+        lock (SyncRoot) {
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.Error.WriteLine(message);
+            Console.ResetColor();
+        }
+    }
+
+    public static void Verbose5(string message) {
+        if (VerbosityLevel < 5) { return; }
+        lock (SyncRoot) {
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.Error.WriteLine(message);
+            Console.ResetColor();
+        }
+    }
+
 }

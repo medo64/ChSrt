@@ -332,6 +332,7 @@ public sealed record SrtFile {
                 if (lineChars.Count > 0) {
                     var line = new string([.. lineChars]);
                     lines.Add(line);
+                    Output.Verbose5("> " + line);
                     lineChars.Clear();
                 } else {  // empty line
                     if (lines.Count >= 2) {
@@ -348,6 +349,7 @@ public sealed record SrtFile {
 
         if (lineChars.Count > 0) {
             var line = new string([.. lineChars]);
+            Output.Verbose5("~ " + line);
             lines.Add(line);
         }
         if (lines.Count >= 2) {
@@ -358,17 +360,28 @@ public sealed record SrtFile {
     }
 
     private static void ParseLines(List<SrtEntry> entries, List<string> lines) {
-        if (!int.TryParse(lines[0], out var index)) { index = 0; }
+        if (int.TryParse(lines[0], out var index)) {
+            Output.Verbose5($"< {lines[0]} >");
+        } else {
+            Output.Verbose5($"<! {lines[0]} !>");
+            index = 0;
+        }
 
         var timeParts = lines[1].Split("-->", StringSplitOptions.TrimEntries);
         if (timeParts.Length == 2) {
             if (TimeSpan.TryParseExact(timeParts[0], "hh\\:mm\\:ss\\,fff", null, out var timeStart)
                 && TimeSpan.TryParseExact(timeParts[1], "hh\\:mm\\:ss\\,fff", null, out var timeEnd)) {
+                Output.Verbose5($"[ {lines[1]} ]");
 
                 var textLines = lines[2..];
+                foreach (var textLine in textLines) {
+                    Output.Verbose5($"{{ {textLine} }}");
+                }
 
                 var entry = new SrtEntry(index, timeStart, timeEnd, textLines);
                 entries.Add(entry);
+            } else {
+                Output.Verbose5($"[! {lines[1]} !]");
             }
         }
     }
