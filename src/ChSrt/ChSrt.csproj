@@ -10,7 +10,7 @@
     <AssemblyName>chsrt</AssemblyName>
     <RootNamespace>ChSrt</RootNamespace>
     <Product>ChSrt</Product>
-    <Version>0.0.0</Version>
+    <Version>1.2.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
