@@ -19,6 +19,12 @@ internal static class App {
             }
         });
 
+        var allOption = new Option<bool>("--all", "-a") {
+            Description = "Executes most common fixes (equivalent to -icf)",
+            Arity = ArgumentArity.Zero,
+            DefaultValueFactory = _ => false,
+        };
+
         var backupOption = new Option<bool>("--backup", "-b") {
             Description = "Creates a backup of the original file before editing",
             Arity = ArgumentArity.Zero,
@@ -55,19 +61,19 @@ internal static class App {
             DefaultValueFactory = _ => false,
         };
 
-        var fixIndices = new Option<bool>("--fix-indices") {
+        var fixIndicesOption = new Option<bool>("--fix-indices") {
             Description = "Fixes subtitle indices",
             Arity = ArgumentArity.Zero,
             DefaultValueFactory = _ => false,
         };
 
-        var fixOrder = new Option<bool>("--fix-order") {
+        var fixOrderOption = new Option<bool>("--fix-order") {
             Description = "Sorts all subtitles by time",
             Arity = ArgumentArity.Zero,
             DefaultValueFactory = _ => false,
         };
 
-        var fixOverlap = new Option<bool>("--fix-overlap") {
+        var fixOverlapOption = new Option<bool>("--fix-overlap") {
             Description = "Fixes overlapping subtitles",
             Arity = ArgumentArity.Zero,
             DefaultValueFactory = _ => false,
@@ -99,33 +105,38 @@ internal static class App {
         // Default command
         var rootCommand = new RootCommand("SRT manipulation tool") {
             fileArgument,
+            allOption,
             backupOption,
             cleanAllOption,
             cleanAssOption,
             cleanHtmlOption,
             cleanHtmlAllOption,
             fixAllOption,
-            fixIndices,
-            fixOrder,
-            fixOverlap,
+            fixIndicesOption,
+            fixOrderOption,
+            fixOverlapOption,
             inPlaceOption,
             timeAdjustOption,
             verboseOption,
         };
         rootCommand.SetAction(result => {
-            Exec(
-                 result.GetValue(fileArgument)!,  // handled by parser
-                 result.GetValue(backupOption)!,
-                 result.GetValue(cleanAllOption)!,
-                 result.GetValue(cleanAssOption)!,
-                 result.GetValue(cleanHtmlOption)!,
-                 result.GetValue(cleanHtmlAllOption)!,
-                 result.GetValue(fixAllOption)!,
-                 result.GetValue(fixIndices)!,
-                 result.GetValue(fixOrder)!,
-                 result.GetValue(fixOverlap)!,
-                 result.GetValue(inPlaceOption)!,
-                 result.GetValue(timeAdjustOption)!,
+            var files = result.GetValue(fileArgument)!;
+            var backup = result.GetValue(backupOption)!;
+            var cleanAll = result.GetValue(cleanAllOption)! || result.GetValue(allOption)!;
+            var cleanAss = result.GetValue(cleanAssOption)!;
+            var cleanHtml = result.GetValue(cleanHtmlOption)!;
+            var cleanHtmlAll = result.GetValue(cleanHtmlAllOption)!;
+            var fixAll = result.GetValue(fixAllOption)! || result.GetValue(allOption)!;
+            var fixIndices = result.GetValue(fixIndicesOption)!;
+            var fixOrder = result.GetValue(fixOrderOption)!;
+            var fixOverlap = result.GetValue(fixOverlapOption)!;
+            var inPlace = result.GetValue(inPlaceOption)!;
+            var timeAdjust = result.GetValue(timeAdjustOption)!;
+            Exec(files,
+                 backup,
+                 cleanAll, cleanAss, cleanHtml, cleanHtmlAll,
+                 fixAll, fixIndices, fixOrder, fixOverlap,
+                 inPlace, timeAdjust,
                  verbosityLevel
             );
 
