@@ -55,7 +55,9 @@ public sealed record SrtFile {
                 newLine = ItalicOnAssRegex.Replace(newLine, "<i>");
                 newLine = ItalicOffAssRegex.Replace(newLine, "</i>");
                 newLine = AllAssRegex.Replace(newLine, "");
-                newLines.Add(newLine);
+                if (newLine.Length > 0) {
+                    newLines.Add(newLine);
+                }
             }
             newEntries.Add(entry with { Lines = newLines });
         }
@@ -86,7 +88,9 @@ public sealed record SrtFile {
                 } else {
                     newLine = ExtraHtmlRegex.Replace(newLine, "");
                 }
-                newLines.Add(newLine);
+                if (newLine.Length > 0) {
+                    newLines.Add(newLine);
+                }
             }
             newEntries.Add(entry with { Lines = newLines });
         }
@@ -393,7 +397,7 @@ public sealed record SrtFile {
     private static Regex BoldOffAssRegex = new Regex(@"\{\\b0\}", RegexOptions.Singleline | RegexOptions.Compiled);
     private static Regex ItalicOnAssRegex = new Regex(@"\{\\i1\}", RegexOptions.Singleline | RegexOptions.Compiled);
     private static Regex ItalicOffAssRegex = new Regex(@"\{\\i0\}", RegexOptions.Singleline | RegexOptions.Compiled);
-    private static Regex ExtraHtmlRegex = new Regex(@"<(?!/?(?:b|i)\b)[^>]+>", RegexOptions.Singleline | RegexOptions.Compiled);
+    private static Regex ExtraHtmlRegex = new Regex(@"<(?!/?(?:b|i)\b)[^>]+?>", RegexOptions.Singleline | RegexOptions.Compiled);
     private static Regex AllHtmlRegex = new Regex(@"<[^>]+>", RegexOptions.Singleline | RegexOptions.Compiled);
 
     #endregion Helpers
