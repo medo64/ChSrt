@@ -183,6 +183,8 @@ public sealed record SrtFile {
     /// <param name="stream">Stream</param>
     /// <param name="newLine">New line sequence.</param>
     public void Save(Stream stream, string newLine) {
+        if (stream.CanSeek) { stream.SetLength(0); }
+
         if (newLine is not "\r\n" and not "\n" and not "\r") { throw new ArgumentOutOfRangeException(nameof(newLine), "Unsupported EOL sequence"); }
         var newLineBytes = Utf8.GetBytes(newLine);
         foreach (var entry in BackingEntries) {
@@ -230,7 +232,6 @@ public sealed record SrtFile {
     /// <param name="newLine">New line sequence.</param>
     public void Save(string filePath, string newLine) {
         using var stream = File.OpenWrite(filePath);
-        stream.SetLength(0);
         Save(stream, newLine);
     }
 
@@ -410,7 +411,7 @@ public sealed record SrtFile {
     private static Regex BoldOffAssRegex = new Regex(@"\{\\b0\}", RegexOptions.Singleline | RegexOptions.Compiled);
     private static Regex ItalicOnAssRegex = new Regex(@"\{\\i1\}", RegexOptions.Singleline | RegexOptions.Compiled);
     private static Regex ItalicOffAssRegex = new Regex(@"\{\\i0\}", RegexOptions.Singleline | RegexOptions.Compiled);
-    private static Regex ExtraHtmlRegex = new Regex(@"<(?!/?(?:b|i)\b)[^>]+?>", RegexOptions.Singleline | RegexOptions.Compiled);
+    private static Regex ExtraHtmlRegex = new Regex(@"<(?!/?(?:b|i)\b)[^>]+>", RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.Compiled);
     private static Regex AllHtmlRegex = new Regex(@"<[^>]+>", RegexOptions.Singleline | RegexOptions.Compiled);
 
     #endregion Helpers
