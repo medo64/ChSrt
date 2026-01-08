@@ -44,6 +44,7 @@ public sealed record SrtFile {
     /// Cleans ASS tags from all entries.
     /// </summary>
     public void CleanAssTags() {
+        var anyChanges = 0;
         var newEntries = new List<SrtEntry>();
         var newLines = new List<string>();
         foreach (var entry in BackingEntries) {
@@ -58,10 +59,14 @@ public sealed record SrtFile {
                 if (newLine.Length > 0) {
                     newLines.Add(newLine);
                 }
+                if (!newLine.Equals(line)) { anyChanges += 1; }
             }
             newEntries.Add(entry with { Lines = newLines });
         }
         BackingEntries = newEntries;
+        if (anyChanges > 0) {
+            Output.Verbose3($"Cleaned ASS tags: {anyChanges} changes");
+        }
     }
 
     /// <summary>
@@ -77,6 +82,7 @@ public sealed record SrtFile {
     /// </summary>
     /// <param name="cleanBoldAndItalic">If true, bold and italic tags are also cleaned.</param>
     public void CleanHtmlTags(bool cleanBoldAndItalic) {
+        var anyChanges = 0;
         var newEntries = new List<SrtEntry>();
         var newLines = new List<string>();
         foreach (var entry in BackingEntries) {
@@ -91,10 +97,18 @@ public sealed record SrtFile {
                 if (newLine.Length > 0) {
                     newLines.Add(newLine);
                 }
+                if (!newLine.Equals(line)) { anyChanges += 1; }
             }
             newEntries.Add(entry with { Lines = newLines });
         }
         BackingEntries = newEntries;
+        if (anyChanges > 0) {
+            if (cleanBoldAndItalic) {
+                Output.Verbose3($"Cleaned all HTML tags: {anyChanges} changes");
+            } else {
+                Output.Verbose3($"Cleaned extra HTML tags: {anyChanges} changes");
+            }
+        }
     }
 
 
@@ -111,12 +125,21 @@ public sealed record SrtFile {
     /// Updates entries with corrected indices.
     /// </summary>
     public void FixIndices() {
+        var anyChanges = 0;
         var newEntries = new List<SrtEntry>();
         var index = 1;
         foreach (var entry in BackingEntries) {
-            newEntries.Add(entry with { Index = index++ });
+            var newEntry = entry with { Index = index++ };
+            newEntries.Add(newEntry);
+            if (newEntry.Index != entry.Index) {
+                anyChanges += 1;
+                Output.Verbose4($"Fixed index: {entry.Index} -> {newEntry.Index}");
+            }
         }
         BackingEntries = newEntries;
+        if (anyChanges > 0) {
+            Output.Verbose3($"Fixed indices: {anyChanges} changes");
+        }
     }
 
     /// <summary>
