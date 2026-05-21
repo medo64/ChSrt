@@ -281,6 +281,8 @@ public sealed record SrtFile {
             detector.Feed(bytes, 0, bytes.Length);
             detector.DataEnd();
 
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
             if (detector.Charset != null) {  // auto-detected
                 Debug.WriteLine($"Detected {detector.Charset} (confidence: {detector.Confidence})");
                 encoding = Encoding.GetEncoding(detector.Charset);
@@ -289,7 +291,7 @@ public sealed record SrtFile {
                 Debug.WriteLine("Detected UTF-8 (valid byte sequence)");
                 return Load(bytes, Utf8);
             } else {  // default to Windows-1252
-                Debug.WriteLine("Windows-1252 (defailt)");
+                Debug.WriteLine("Windows-1252 (default)");
                 return Load(bytes, Encoding.GetEncoding(1252));
             }
         } else {  // use specified encoding
