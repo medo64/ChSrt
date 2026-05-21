@@ -1,5 +1,9 @@
 ## Change Log
 
+### 1.3.0 - 2026-05-20
+
+* fixed non-UTF8 handling
+
 ### 1.2.0 - 2026-01-07
 
 * Fixed file length bug
