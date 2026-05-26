@@ -695,7 +695,7 @@ make_package() {
             fi
 
             mkdir -p  "$SCRIPT_DIR/build/$DEB_PACKAGE_NAME/opt/$PROJECT_NAME/"
-            rsync -a "$SCRIPT_DIR/bin/linux-x64/" "$SCRIPT_DIR/build/$DEB_PACKAGE_NAME/opt/$PROJECT_NAME/" || exit 113
+            rsync -a "$SCRIPT_DIR/bin/linux-x64/" "$SCRIPT_DIR/build/$DEB_PACKAGE_NAME/opt/$PROJECT_NAME_LOWER/" || exit 113
 
             if [ -e "$SCRIPT_DIR/packaging/linux-deb/copyright" ]; then
                 mkdir -p "$SCRIPT_DIR/build/$DEB_PACKAGE_NAME/usr/share/doc/$PROJECT_NAME/"
