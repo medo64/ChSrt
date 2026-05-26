@@ -1,5 +1,9 @@
 ## Change Log
 
+### 1.3.1 - 2026-05-25
+
+* fixed link
+
 ### 1.3.0 - 2026-05-20
 
 * fixed non-UTF8 handling
